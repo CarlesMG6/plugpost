@@ -3,60 +3,56 @@
 <head>
 <meta charset="utf-8">
 <meta name="viewport" content="width=device-width,initial-scale=1">
-<script>
-/* Detección de idioma. Solo actúa en la raíz: si el visitante ya eligió idioma
-   respetamos su elección; si no, miramos el idioma del navegador. Las URLs
-   /ca/ y /en/ nunca redirigen, para que los enlaces compartidos funcionen. */
-(function () {
-  try {
-    var saved = null;
-    try { saved = localStorage.getItem('pp_lang'); } catch (e) {}
-    var target = saved;
-    if (!target) {
-      var nav = (navigator.languages && navigator.languages[0]) || navigator.language || 'es';
-      nav = nav.toLowerCase();
-      target = nav.indexOf('ca') === 0 ? 'ca' : nav.indexOf('es') === 0 ? 'es' : 'en';
-    }
-    if (target === 'ca' || target === 'en') {
-      location.replace('/' + target + '/' + location.hash);
-    }
-  } catch (e) {}
-})();
-</script>
-<title>PlugPost — La farola que carga tu coche eléctrico</title>
-<meta name="description" content="PlugPost sustituye farolas existentes por farolas inteligentes con cargador para coche eléctrico embebido. Sin obras, sin zanjas. Plug & Play.">
-<link rel="canonical" href="https://plugpost.es/">
-<link rel="alternate" hreflang="es" href="https://plugpost.es/">
+<title>PlugPost</title>
+<meta name="description" content="PlugPost sustituye farolas existentes por farolas inteligentes con cargador para coche eléctrico embebido. Disponible en español, català y English.">
+<meta name="robots" content="noindex,follow">
+<link rel="alternate" hreflang="es" href="https://plugpost.es/es/">
 <link rel="alternate" hreflang="ca" href="https://plugpost.es/ca/">
 <link rel="alternate" hreflang="en" href="https://plugpost.es/en/">
 <link rel="alternate" hreflang="x-default" href="https://plugpost.es/">
 <link rel="icon" href="/assets/logo.png">
-<meta property="og:type" content="website">
-<meta property="og:site_name" content="PlugPost">
-<meta property="og:url" content="https://plugpost.es/">
-<meta property="og:locale" content="es_ES">
-<meta property="og:locale:alternate" content="ca_ES">
-<meta property="og:locale:alternate" content="en_GB">
-<meta property="og:title" content="PlugPost — La farola que carga tu coche eléctrico">
-<meta property="og:description" content="Sustituimos farolas existentes por farolas inteligentes con cargador para vehículo eléctrico embebido. Sin obras, sin zanjas. Plug & Play.">
-<meta property="og:image" content="https://plugpost.es/assets/logo.png">
-<meta name="twitter:card" content="summary">
-<meta name="twitter:title" content="PlugPost — La farola que carga tu coche eléctrico">
-<meta name="twitter:description" content="Sustituimos farolas existentes por farolas inteligentes con cargador para vehículo eléctrico embebido. Sin obras, sin zanjas. Plug & Play.">
-<meta name="twitter:image" content="https://plugpost.es/assets/logo.png">
-<link rel="preconnect" href="https://fonts.googleapis.com">
-<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
-<link href="https://fonts.googleapis.com/css2?family=Plus+Jakarta+Sans:wght@400;500;600&family=Sora:wght@600;700&family=JetBrains+Mono:wght@400;500&display=swap" rel="stylesheet">
-<link rel="stylesheet" href="/assets/styles.css">
+<script>
+/* Esta página no tiene contenido propio: solo reparte a /es/, /ca/ o /en/.
+   Manda la preferencia guardada; si no hay, el idioma del navegador. */
+(function () {
+  var target = null;
+  try { target = localStorage.getItem('pp_lang'); } catch (e) {}
+  if (target !== 'es' && target !== 'ca' && target !== 'en') {
+    var nav = '';
+    try {
+      nav = ((navigator.languages && navigator.languages[0]) || navigator.language || 'es').toLowerCase();
+    } catch (e) {}
+    target = nav.indexOf('ca') === 0 ? 'ca' : nav.indexOf('es') === 0 ? 'es' : 'en';
+  }
+  location.replace('/' + target + '/' + location.hash);
+})();
+</script>
+<noscript><meta http-equiv="refresh" content="0; url=/es/"></noscript>
+<style>
+  body {
+    margin: 0; min-height: 100vh;
+    display: flex; flex-direction: column;
+    align-items: center; justify-content: center; gap: 20px;
+    font-family: system-ui, sans-serif;
+    color: #0B1220; background: #FFFFFF;
+    text-align: center; padding: 24px;
+  }
+  img { width: 175px; height: auto; }
+  ul { list-style: none; display: flex; gap: 12px; padding: 0; margin: 0; flex-wrap: wrap; justify-content: center; }
+  a {
+    display: inline-block; padding: 10px 18px;
+    border: 1px solid #E5E9F2; border-radius: 100px;
+    color: #1F2A3D; text-decoration: none; font-weight: 600;
+  }
+  a:hover { background: #F6F8FC; }
+</style>
 </head>
 <body>
-<div id="app"></div>
-
-<script src="https://cdnjs.cloudflare.com/ajax/libs/react/18.3.1/umd/react.development.min.js"></script>
-<script src="https://cdnjs.cloudflare.com/ajax/libs/react-dom/18.3.1/umd/react-dom.development.min.js"></script>
-<script src="https://cdnjs.cloudflare.com/ajax/libs/babel-standalone/7.23.5/babel.min.js"></script>
-
-<script src="/assets/i18n/es.js"></script>
-<script type="text/babel" src="/assets/app.js" data-presets="env,react"></script>
+<img src="/assets/logo.png" alt="PlugPost" width="349" height="200">
+<ul>
+  <li><a href="/es/" hreflang="es" lang="es">Español</a></li>
+  <li><a href="/ca/" hreflang="ca" lang="ca">Català</a></li>
+  <li><a href="/en/" hreflang="en" lang="en">English</a></li>
+</ul>
 </body>
 </html>

@@ -2,7 +2,7 @@
 // Los textos viven en /assets/i18n/<idioma>.js y se cargan antes que este fichero.
 const T = window.I18N;
 const LANGS = [
-  { code: 'es', name: 'Español', short: 'ES', path: '/' },
+  { code: 'es', name: 'Español', short: 'ES', path: '/es/' },
   { code: 'ca', name: 'Català',  short: 'CA', path: '/ca/' },
   { code: 'en', name: 'English', short: 'EN', path: '/en/' },
 ];
