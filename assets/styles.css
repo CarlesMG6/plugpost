@@ -107,8 +107,10 @@ section { padding: 100px 0; position: relative; }
   display: flex; align-items: center; justify-content: space-between;
   height: 120px;
 }
-.brand { display: flex; align-items: center; gap: 10px; }
-.brand img { height: 120px; width: auto; }
+/* El logo nunca debe encogerse: al tener alto fijo y `max-width:100%`, si flex
+   lo comprime pierde las proporciones en vez de reducirse. */
+.brand { display: flex; align-items: center; gap: 10px; flex-shrink: 0; }
+.brand img { height: 120px; width: auto; flex-shrink: 0; }
 .nav { display: flex; align-items: center; gap: 4px; }
 .nav a {
   padding: 8px 14px; border-radius: 100px;
@@ -118,7 +120,9 @@ section { padding: 100px 0; position: relative; }
 .nav a:hover { background: var(--bg-soft); color: var(--ink); }
 .nav a.active { color: var(--blue); }
 .header-cta { display: flex; align-items: center; gap: 10px; }
-@media (max-width: 900px) { .nav { display: none; } }
+/* El bloque completo (logo 209 + nav 551 + CTA con selector 226 + holgura)
+   necesita ~1080px. Por debajo, el nav se oculta en vez de desbordarse. */
+@media (max-width: 1080px) { .nav { display: none; } }
 .lang { position: relative; }
 .lang-btn {
   display: inline-flex; align-items: center; gap: 6px;
@@ -163,9 +167,21 @@ section { padding: 100px 0; position: relative; }
   color: var(--ink-300);
 }
 .lang-menu a.active .code { color: var(--blue); }
+/* En móvil una cabecera de 120px se come el 15% de la pantalla y, al ser
+   sticky, lo hace durante todo el scroll. La reducimos y con ella el logo,
+   que a 120px de alto pedía 209px de ancho y no cabían. */
 @media (max-width: 640px) {
-  .lang-btn { padding: 0 10px; }
-  .lang-btn .name { display: none; }
+  .header-row { height: 64px; }
+  .brand img { height: 46px; }
+  .header-cta { gap: 8px; }
+  .lang-btn { padding: 0 10px; gap: 5px; }
+  .lang-btn .caret { display: none; }
+}
+/* A 320px el CTA más largo ("Demanar demo") ya no cabía junto al logo. */
+@media (max-width: 380px) {
+  .brand img { height: 40px; }
+  .btn-sm { height: 40px; padding: 0 12px; font-size: 13.5px; }
+  .lang-btn { height: 40px; padding: 0 8px; }
 }
 .hero {
   padding: 64px 0 80px;
@@ -604,6 +620,7 @@ section { padding: 100px 0; position: relative; }
 }
 @media (max-width: 880px) { .footer-grid { grid-template-columns: 1fr 1fr; } }
 @media (max-width: 480px) { .footer-grid { grid-template-columns: 1fr; } }
+.footer-brand img { height: 120px; width: auto; }
 .footer-brand p { color: rgba(255,255,255,.55); font-size: 14px; max-width: 320px; margin-top: 16px; }
 .footer h5 {
   font-family: 'JetBrains Mono', monospace;

@@ -234,13 +234,17 @@ function SpecsCallout() {
 }
 
 // ── PlugPost Logo ─────────────────────────────────────
-function PlugPostLogo({ height = 120 }) {
+// La altura la fija el CSS (.brand img / .footer-brand img) para poder
+// reducirla en móvil; un `style` inline aquí ganaría a la media query.
+// width/height llevan el tamaño natural para que el navegador reserve
+// la proporción correcta antes de descargar la imagen.
+function PlugPostLogo() {
   return (
     <img
       src="/assets/logo.png"
       alt="PlugPost"
-      height={height}
-      style={{ height: height, width: 'auto', display: 'block' }}
+      width="349"
+      height="200"
     />
   );
 }
