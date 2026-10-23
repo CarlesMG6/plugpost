@@ -68,147 +68,182 @@ const Ico = {
 };
 
 // ── SVG Scenes ─────────────────────────────────────────
+// Geometría canónica de la farola. Origen (0,0) = centro de la base a ras de
+// suelo; el mástil crece hacia -y. Todas las escenas reutilizan estos trazados
+// para que la farola sea siempre la misma pieza, sólo que a otra escala.
+//
+// El ORDEN DE PINTADO es parte del diseño: cono → zócalo → fuste → luminaria
+// → módulo de carga. El módulo va el último a propósito, porque está montado
+// sobre la cara frontal de la columna: así el fuste pasa por DETRÁS y nunca
+// lo atraviesa.
+const MAST = {
+  plinth: 'M-22 0 L-17 -34 L17 -34 L22 0 Z',
+  shaft: 'M0 -30 L0 -300 C0 -372 -22 -404 -84 -414',
+  head: 'M-84 -414 q-46 -16 -96 2 q-7 3 -4 10 q5 12 34 16 q40 6 80 -12 q6 -3 -14 -16 Z',
+  cone: 'M-184 -396 L-312 0 L-16 0 L-92 -396 Z',
+  // Punto de salida del cable, en el lateral del módulo.
+  port: [19, -169],
+};
+
+// Farola convencional: fuste recto, brazo en ángulo y luminaria trapezoidal.
+const OLD_MAST = {
+  plinth: 'M-20 0 L-16 -30 L16 -30 L20 0 Z',
+  shaft: 'M0 -26 L0 -340 L-48 -386',
+  head: 'M-44 -396 L-126 -396 L-138 -358 L-34 -358 Z',
+  cap: 'M-128 -398 L-42 -398 L-38 -406 L-124 -406 Z',
+  cone: 'M-138 -358 L-254 0 L22 0 L-34 -358 Z',
+};
+
+const PAL = { pole: '#1F2A3D', poleHi: '#3A4868', plinth: '#2A3550', mod: '#0B1220', old: '#4D5A76' };
+
+// Módulo de carga embebido. Se dibuja siempre después del fuste.
+function ChargerModule({ led = true }) {
+  return (
+    <g>
+      <rect x="-19" y="-238" width="38" height="140" rx="10" fill={PAL.mod} />
+      <rect x="-19" y="-238" width="14" height="140" rx="10" fill="#FFFFFF" opacity=".07" />
+      <rect x="11" y="-238" width="8" height="140" rx="7" fill="#000000" opacity=".28" />
+      <circle cx="0" cy="-206" r="11.5" fill={led ? '#22C55E' : '#2A3550'} />
+      <path d="M-2 -212 l-3 8 h4 l-1 6 5-8 h-4 l-1-6 z" fill={led ? '#06200E' : '#0B1220'} />
+      <rect x="-11" y="-178" width="22" height="18" rx="5" fill="#060C18" stroke={PAL.poleHi} strokeWidth="1" />
+      <circle cx="0" cy="-169" r="4.5" fill={PAL.poleHi} opacity=".55" />
+      <rect x="-10" y="-144" width="20" height="3" rx="1.5" fill={PAL.poleHi} opacity=".45" />
+      <rect x="-10" y="-136" width="13" height="3" rx="1.5" fill={PAL.poleHi} opacity=".3" />
+    </g>
+  );
+}
+
+function Mast({ id, led = true, coneOpacity = 1 }) {
+  return (
+    <g>
+      {coneOpacity > 0 && <path d={MAST.cone} fill={`url(#${id}-cone)`} opacity={coneOpacity} />}
+      <path d={MAST.plinth} fill={PAL.plinth} />
+      <path d={MAST.shaft} stroke={PAL.pole} strokeWidth="15" strokeLinecap="round" fill="none" />
+      <path d={MAST.head} fill={PAL.pole} />
+      <ellipse cx="-132" cy="-392" rx="44" ry="5" fill="#FBD27A" opacity={led ? 0.9 : 0.18} />
+      <ChargerModule led={led} />
+    </g>
+  );
+}
+
+function OldMast({ id, coneOpacity = 1 }) {
+  return (
+    <g>
+      {coneOpacity > 0 && <path d={OLD_MAST.cone} fill={`url(#${id}-cone)`} opacity={coneOpacity} />}
+      <path d={OLD_MAST.plinth} fill={PAL.plinth} />
+      <path d={OLD_MAST.shaft} stroke={PAL.old} strokeWidth="13" strokeLinecap="round" strokeLinejoin="round" fill="none" />
+      <path d={OLD_MAST.head} fill={PAL.old} />
+      <path d={OLD_MAST.cap} fill="#5F6C88" />
+      <path d="M-134 -359 L-38 -359" stroke="#FBD27A" strokeWidth="5" opacity=".75" strokeLinecap="round" />
+    </g>
+  );
+}
+
+// Coche. Origen (0,0) = punto de contacto con la calzada, centrado.
+function Car() {
+  return (
+    <g transform="translate(-85,-35)">
+      <rect x="0" y="-20" width="170" height="42" rx="14" fill="#0B1220" />
+      <path d="M20 -20 q5 -22 30 -22 h70 q25 0 30 22" fill="#1F2A3D" />
+      <path d="M30 -18 q4 -16 24 -16 h62 q20 0 24 16 Z" fill="#3A4868" />
+      <circle cx="36" cy="22" r="13" fill="#0B1220" stroke="#3A4868" strokeWidth="2" />
+      <circle cx="134" cy="22" r="13" fill="#0B1220" stroke="#3A4868" strokeWidth="2" />
+      <circle cx="36" cy="22" r="5" fill="#5A6688" />
+      <circle cx="134" cy="22" r="5" fill="#5A6688" />
+    </g>
+  );
+}
+
+// Cimentación reutilizada: la misma base sostiene la farola vieja y PlugPost.
+function Foundation() {
+  return (
+    <g>
+      <ellipse cx="0" cy="2" rx="46" ry="7" fill="#000000" opacity=".35" />
+      <path d="M-31 0 L-25 -15 L25 -15 L31 0 Z" fill="#17223A" />
+      <circle cx="-18" cy="-9" r="2.6" fill="#3A4868" />
+      <circle cx="18" cy="-9" r="2.6" fill="#3A4868" />
+    </g>
+  );
+}
+
+function ConeGradient({ id, strength = 0.35 }) {
+  return (
+    <linearGradient id={`${id}-cone`} x1="0" x2="0" y1="0" y2="1">
+      <stop offset="0" stopColor="#FBD27A" stopOpacity={strength} />
+      <stop offset="1" stopColor="#FBD27A" stopOpacity="0" />
+    </linearGradient>
+  );
+}
+
 function HeroScene() {
   return (
     <svg className="scene" viewBox="0 0 600 620" preserveAspectRatio="xMidYMax meet" aria-hidden="true">
-      <g transform="translate(330,0)">
-        <rect x="-14" y="380" width="28" height="80" rx="3" fill="#2A3550"/>
-        <rect x="-12" y="300" width="24" height="60" rx="4" fill="#0B1220"/>
-        <circle cx="0" cy="324" r="11" fill="#22C55E"/>
-        <path d="M-2 318 l-3 8 h4 l-1 6 5-8 h-4 l-1-6 z" fill="#06200E"/>
-        <path d="M0 380 C 0 280, 0 200, -60 140" stroke="#2A3550" strokeWidth="8" fill="none" strokeLinecap="round"/>
-        <path d="M-60 140 q-40 -10 -90 8 q-5 2 -3 8 q3 10 30 14 q35 6 70 -10 q5 -3 -7 -20 Z" fill="#1F2A3D"/>
-        <ellipse cx="-110" cy="160" rx="35" ry="4" fill="#FBD27A" opacity=".5"/>
-        <path d="M-145 158 L -260 320 L 5 320 L -88 158 Z" fill="url(#cone)"/>
-      </g>
-      <g transform="translate(110,440)">
-        <rect x="0" y="-20" width="170" height="42" rx="14" fill="#0B1220"/>
-        <path d="M20 -20 q5 -22 30 -22 h70 q25 0 30 22" fill="#1F2A3D"/>
-        <path d="M30 -18 q4 -16 24 -16 h62 q20 0 24 16 Z" fill="#3A4868"/>
-        <circle cx="36" cy="22" r="13" fill="#0B1220" stroke="#3A4868" strokeWidth="2"/>
-        <circle cx="134" cy="22" r="13" fill="#0B1220" stroke="#3A4868" strokeWidth="2"/>
-        <circle cx="36" cy="22" r="5" fill="#5A6688"/>
-        <circle cx="134" cy="22" r="5" fill="#5A6688"/>
-      </g>
-      <path d="M330 324 C 280 360, 260 420, 240 420" stroke="#22C55E" strokeWidth="3" fill="none" strokeDasharray="5 4" strokeLinecap="round">
-        <animate attributeName="stroke-dashoffset" from="0" to="-18" dur="1.2s" repeatCount="indefinite"/>
+      <defs><ConeGradient id="hero" /></defs>
+      <g transform="translate(390,452) scale(.82)"><Mast id="hero" /></g>
+      <g transform="translate(195,478)"><Car /></g>
+      <path d="M406 310 C 380 348, 330 404, 264 412" stroke="#22C55E" strokeWidth="3" fill="none" strokeDasharray="5 4" strokeLinecap="round">
+        <animate attributeName="stroke-dashoffset" from="0" to="-18" dur="1.2s" repeatCount="indefinite" />
       </path>
-      <circle cx="240" cy="420" r="4" fill="#22C55E"/>
-      <defs>
-        <linearGradient id="cone" x1="0" x2="0" y1="0" y2="1">
-          <stop offset="0" stopColor="#FBD27A" stopOpacity=".35"/>
-          <stop offset="1" stopColor="#FBD27A" stopOpacity="0"/>
-        </linearGradient>
-      </defs>
+      <circle cx="264" cy="412" r="4" fill="#22C55E" />
     </svg>
   );
 }
 
-function DemoStage({ step }) {
+// ── Escena animada por scroll ──────────────────
+// `p` va de 0 a 1 y recorre los tres pasos: retirar → instalar → cargar.
+// Los tramos se solapan con los cortes de paso (1/3 y 2/3) para que cada
+// gesto termine justo cuando el texto de su paso deja de estar activo.
+function TransformScene({ p }) {
+  const clamp01 = (v) => Math.min(1, Math.max(0, v));
+  const seg = (a, b) => clamp01((p - a) / (b - a));
+  const easeOut = (t) => 1 - Math.pow(1 - t, 3);
+  const easeIn = (t) => t * t * t;
+
+  const lift = seg(0.10, 0.32);     // se retira la farola existente
+  const drop = seg(0.34, 0.56);     // baja PlugPost sobre la misma base
+  const arrive = seg(0.70, 0.86);   // llega el coche
+  const plug = seg(0.87, 0.96);     // se enchufa
+
+  const oldY = -easeIn(lift) * 680;
+  const oldOp = 1 - clamp01((lift - 0.55) / 0.45);
+  const newY = -(1 - easeOut(drop)) * 680;
+  const newOp = clamp01(drop * 8);
+  const led = p >= 0.60;
+  const coneOp = seg(0.60, 0.68);
+  const carX = -(1 - easeOut(arrive)) * 420;
+  const sx = 350 + MAST.port[0] * 0.72;
+  const sy = 392 + MAST.port[1] * 0.72;
+
   return (
-    <svg className="scene-svg" viewBox="0 0 600 420" preserveAspectRatio="xMidYMax meet" aria-hidden="true">
+    <svg className="tf-svg" viewBox="0 0 560 448" preserveAspectRatio="xMidYMid meet" aria-hidden="true">
       <defs>
-        <linearGradient id="cone2" x1="0" x2="0" y1="0" y2="1">
-          <stop offset="0" stopColor="#FBD27A" stopOpacity=".25"/>
-          <stop offset="1" stopColor="#FBD27A" stopOpacity="0"/>
-        </linearGradient>
+        <ConeGradient id="tf" strength={0.3} />
+        <ConeGradient id="tfold" strength={0.2} />
       </defs>
-      {step === 0 && (
-        <g transform="translate(300, 30)">
-          <rect x="-10" y="280" width="20" height="60" rx="2" fill="#1B2540"/>
-          <rect x="-6" y="60" width="12" height="220" fill="#1B2540"/>
-          <rect x="-44" y="44" width="60" height="18" rx="2" fill="#1B2540"/>
-          <rect x="-44" y="62" width="60" height="6" fill="#3A4868"/>
-          <path d="M-44 70 L -100 220 L 16 220 L 16 70 Z" fill="url(#cone2)"/>
-          <text x="0" y="365" textAnchor="middle" fontFamily="JetBrains Mono, monospace" fontSize="11" fill="rgba(255,255,255,.35)" letterSpacing="1">{T.demo.stageBefore}</text>
+      <rect x="0" y="392" width="560" height="56" fill="#070D1A" />
+      <path d="M0 420 H560" stroke="#FFFFFF" strokeOpacity=".2" strokeWidth="3" strokeDasharray="24 20" />
+      <g transform="translate(350,392)"><Foundation /></g>
+      {oldOp > 0.01 && (
+        <g opacity={oldOp} transform={`translate(350,392) scale(.72) rotate(${-lift * 3}) translate(0,${oldY})`}>
+          <OldMast id="tfold" coneOpacity={1 - lift} />
         </g>
       )}
-      {step >= 1 && (
-        <g transform="translate(300, 30)">
-          <rect x="-12" y="280" width="24" height="60" rx="2" fill="#1F2A3D"/>
-          <rect x="-10" y="200" width="20" height="60" rx="3" fill="#0B1220" stroke="#22C55E" strokeOpacity=".4"/>
-          <circle cx="0" cy="222" r="9" fill="#22C55E">
-            <animate attributeName="opacity" values="1;.6;1" dur="2s" repeatCount="indefinite"/>
-          </circle>
-          <path d="M-2 217 l-3 7 h4 l-1 5 5-7 h-4 l-1-5 z" fill="#06200E"/>
-          <path d="M0 280 C 0 200, 0 140, -55 90" stroke="#1F2A3D" strokeWidth="7" fill="none" strokeLinecap="round"/>
-          <path d="M-55 90 q-35 -10 -78 6 q-5 2 -3 7 q3 8 26 11 q30 5 60 -8 q5 -3 -5 -16 Z" fill="#1F2A3D"/>
-          <ellipse cx="-94" cy="106" rx="28" ry="3" fill="#FBD27A" opacity=".6"/>
-          <path d="M-126 105 L -210 240 L 5 240 L -73 105 Z" fill="url(#cone2)"/>
-          <text x="0" y="365" textAnchor="middle" fontFamily="JetBrains Mono, monospace" fontSize="11" fill="rgba(34,197,94,.65)" letterSpacing="1">{T.demo.stageAfter}</text>
+      {newOp > 0.01 && (
+        <g opacity={newOp} transform={`translate(350,392) scale(.72) translate(0,${newY})`}>
+          <Mast id="tf" led={led} coneOpacity={coneOp} />
         </g>
       )}
-      {step === 2 && (
-        <g transform="translate(80, 320)">
-          <rect x="0" y="-18" width="150" height="38" rx="12" fill="#0F1828"/>
-          <path d="M18 -18 q4 -20 26 -20 h62 q22 0 26 20" fill="#1F2A3D"/>
-          <path d="M28 -16 q4 -14 22 -14 h54 q18 0 22 14 Z" fill="#3A4868"/>
-          <circle cx="32" cy="20" r="11" fill="#0B1220" stroke="#3A4868" strokeWidth="2"/>
-          <circle cx="118" cy="20" r="11" fill="#0B1220" stroke="#3A4868" strokeWidth="2"/>
-        </g>
+      {arrive > 0.01 && (
+        <g opacity={clamp01(arrive * 6)} transform={`translate(${165 + carX},392)`}><Car /></g>
       )}
-      {step === 2 && (
-        <>
-          <path d="M300 252 C 260 280, 240 320, 210 320" stroke="#22C55E" strokeWidth="3" fill="none" strokeDasharray="5 4" strokeLinecap="round">
-            <animate attributeName="stroke-dashoffset" from="0" to="-18" dur="1s" repeatCount="indefinite"/>
+      {plug > 0.01 && (
+        <g opacity={plug}>
+          <path d={`M${sx} ${sy} C ${sx - 26} ${sy + 46}, ${sx - 92} ${sy + 86}, 236 352`} stroke="#22C55E" strokeWidth="3" fill="none" strokeDasharray="5 4" strokeLinecap="round">
+            <animate attributeName="stroke-dashoffset" from="0" to="-18" dur="1s" repeatCount="indefinite" />
           </path>
-          <circle cx="210" cy="320" r="4" fill="#22C55E"/>
-        </>
+          <circle cx="236" cy="352" r="4.5" fill="#22C55E" />
+        </g>
       )}
-    </svg>
-  );
-}
-
-function StepIllustration({ step }) {
-  if (step === 1) {
-    return (
-      <svg viewBox="0 0 200 160" width="100%" height="100%" preserveAspectRatio="xMidYMid meet">
-        <g>
-          <rect x="92" y="120" width="16" height="30" rx="2" fill="#8995AE"/>
-          <rect x="96" y="40" width="8" height="80" fill="#8995AE" opacity=".5"/>
-          <rect x="70" y="32" width="40" height="12" rx="2" fill="#8995AE" opacity=".5"/>
-          <path d="M120 70 q20 -30 50 -30" stroke="#1E63F5" strokeWidth="1.5" fill="none" strokeDasharray="3 3"/>
-          <path d="M170 40 l-6 -3 l1 7 z" fill="#1E63F5"/>
-        </g>
-        <text x="100" y="155" textAnchor="middle" fontFamily="JetBrains Mono, monospace" fontSize="9" fill="#8995AE" letterSpacing="1">{T.how.steps[0].illu}</text>
-      </svg>
-    );
-  }
-  if (step === 2) {
-    return (
-      <svg viewBox="0 0 200 160" width="100%" height="100%" preserveAspectRatio="xMidYMid meet">
-        <g transform="translate(100, 14)">
-          <rect x="-8" y="100" width="16" height="30" rx="2" fill="#1F2A3D"/>
-          <rect x="-6" y="60" width="12" height="40" rx="2" fill="#0B1220"/>
-          <circle cx="0" cy="74" r="5" fill="#22C55E"/>
-          <path d="M0 60 C 0 30, 0 18, -28 0" stroke="#1F2A3D" strokeWidth="4" fill="none"/>
-          <path d="M-28 0 q-20 -6 -42 4 q-3 1 -1 4 q3 5 16 6 q16 3 32 -4 q3 -2 -5 -10 Z" fill="#1F2A3D"/>
-          <path d="M40 -20 q-10 25 -30 35" stroke="#1E63F5" strokeWidth="1.5" fill="none" strokeDasharray="3 3"/>
-          <path d="M10 15 l3 -6 l-7 1 z" fill="#1E63F5"/>
-        </g>
-        <text x="100" y="155" textAnchor="middle" fontFamily="JetBrains Mono, monospace" fontSize="9" fill="#8995AE" letterSpacing="1">{T.how.steps[1].illu}</text>
-      </svg>
-    );
-  }
-  return (
-    <svg viewBox="0 0 200 160" width="100%" height="100%" preserveAspectRatio="xMidYMid meet">
-      <g transform="translate(130, 14)">
-        <rect x="-6" y="100" width="12" height="30" rx="2" fill="#1F2A3D"/>
-        <rect x="-5" y="64" width="10" height="36" rx="2" fill="#0B1220"/>
-        <circle cx="0" cy="78" r="4" fill="#22C55E"/>
-        <path d="M0 64 C 0 36, 0 22, -22 6" stroke="#1F2A3D" strokeWidth="3.5" fill="none"/>
-        <path d="M-22 6 q-16 -4 -36 4 q-2 1 0 3 q2 4 13 5 q14 2 28 -4 q3 -2 -3 -8 Z" fill="#1F2A3D"/>
-      </g>
-      <g transform="translate(40, 100)">
-        <rect x="0" y="-12" width="70" height="22" rx="6" fill="#0F1828"/>
-        <path d="M8 -12 q3 -12 14 -12 h26 q11 0 14 12" fill="#1F2A3D"/>
-        <circle cx="16" cy="12" r="6" fill="#0B1220"/>
-        <circle cx="54" cy="12" r="6" fill="#0B1220"/>
-      </g>
-      <path d="M130 86 q-20 14 -40 14" stroke="#22C55E" strokeWidth="2" fill="none" strokeDasharray="3 3">
-        <animate attributeName="stroke-dashoffset" from="0" to="-12" dur="1s" repeatCount="indefinite"/>
-      </path>
-      <text x="100" y="155" textAnchor="middle" fontFamily="JetBrains Mono, monospace" fontSize="9" fill="#8995AE" letterSpacing="1">{T.how.steps[2].illu}</text>
     </svg>
   );
 }
@@ -216,19 +251,9 @@ function StepIllustration({ step }) {
 function SpecsCallout() {
   return (
     <svg viewBox="0 0 360 460" width="100%" height="100%" preserveAspectRatio="xMidYMid meet">
-      <g transform="translate(180, 30)">
-        <rect x="-14" y="380" width="28" height="40" rx="2" fill="#1F2A3D"/>
-        <rect x="-13" y="270" width="26" height="100" rx="4" fill="#0B1220" stroke="#1E63F5" strokeOpacity=".3"/>
-        <circle cx="0" cy="296" r="9" fill="#22C55E"/>
-        <path d="M-2 290 l-3 8 h4 l-1 6 5-8 h-4 l-1-6 z" fill="#06200E"/>
-        <rect x="-7" y="320" width="14" height="6" rx="1" fill="#1E63F5" opacity=".6"/>
-        <rect x="-7" y="330" width="14" height="2" rx="1" fill="#3A4868"/>
-        <rect x="-7" y="336" width="10" height="2" rx="1" fill="#3A4868"/>
-        <path d="M0 370 C 0 260, 0 160, -70 100" stroke="#1F2A3D" strokeWidth="8" fill="none" strokeLinecap="round"/>
-        <path d="M-70 100 q-42 -12 -94 8 q-5 2 -3 8 q3 10 32 14 q38 6 76 -10 q5 -3 -7 -20 Z" fill="#1F2A3D"/>
-        <ellipse cx="-118" cy="124" rx="40" ry="4" fill="#FBD27A" opacity=".7"/>
-      </g>
-      <line x1="20" y1="420" x2="340" y2="420" stroke="#8995AE" strokeWidth="1" strokeDasharray="3 4" opacity=".4"/>
+      <defs><ConeGradient id="spec" strength={0.22} /></defs>
+      <g transform="translate(190,440) scale(.81)"><Mast id="spec" /></g>
+      <line x1="16" y1="440" x2="344" y2="440" stroke="#8995AE" strokeWidth="1" strokeDasharray="3 4" opacity=".4" />
     </svg>
   );
 }
@@ -431,7 +456,62 @@ function Problem() {
 }
 
 // ── How it works ───────────────────────────────────────
+// Los tres pasos se recorren con el scroll: la escena queda fija (sticky)
+// mientras la lista de pasos avanza. El progreso 0→1 del raíl alimenta a la
+// vez el paso activo y la animación de la farola.
+function usePrefersReducedMotion() {
+  const [reduced, setReduced] = React.useState(false);
+  React.useEffect(() => {
+    const mq = window.matchMedia('(prefers-reduced-motion: reduce)');
+    const on = () => setReduced(mq.matches);
+    on();
+    mq.addEventListener('change', on);
+    return () => mq.removeEventListener('change', on);
+  }, []);
+  return reduced;
+}
+
+// El raíl mide 100vh (lo que ocupa la escena fija) + el recorrido útil.
+// p = cuánto llevamos recorrido de ese tramo útil.
+function useScrollProgress(ref, enabled) {
+  const [p, setP] = React.useState(0);
+  React.useEffect(() => {
+    if (!enabled) return;
+    let raf = 0;
+    const read = () => {
+      raf = 0;
+      const el = ref.current;
+      if (!el) return;
+      const r = el.getBoundingClientRect();
+      // El recorrido util es lo que sobresale por debajo del panel pegajoso,
+      // asi que medimos ese panel en vez de fiarnos de innerHeight.
+      const inner = el.firstElementChild;
+      const stickyH = inner ? inner.getBoundingClientRect().height : window.innerHeight;
+      const span = r.height - stickyH;
+      if (span <= 0) { setP(r.top <= 0 ? 1 : 0); return; }
+      setP(Math.min(1, Math.max(0, -r.top / span)));
+    };
+    const onScroll = () => { if (!raf) raf = requestAnimationFrame(read); };
+    window.addEventListener('scroll', onScroll, { passive: true });
+    window.addEventListener('resize', onScroll);
+    read();
+    return () => {
+      window.removeEventListener('scroll', onScroll);
+      window.removeEventListener('resize', onScroll);
+      if (raf) cancelAnimationFrame(raf);
+    };
+  }, [enabled]);
+  return p;
+}
+
 function HowItWorks() {
+  const reduced = usePrefersReducedMotion();
+  const track = React.useRef(null);
+  const scrolled = useScrollProgress(track, !reduced);
+  const p = reduced ? 1 : scrolled;
+  const idx = Math.min(2, Math.max(0, Math.floor(p * 3)));
+  const local = Math.min(1, Math.max(0, p * 3 - idx));
+
   return (
     <section id="como" className="how">
       <div className="container">
@@ -446,70 +526,39 @@ function HowItWorks() {
             {T.how.lede}
           </p>
         </div>
-        <div className="steps">
-          {[1,2,3].map((s, i) => (
-            <div className="step" key={s}>
-              <div className="num">{T.how.stepLabel} 0{s}</div>
-              <div className="illu"><StepIllustration step={s}/></div>
-              <h3>{T.how.steps[i].title}</h3>
-              <p>{T.how.steps[i].body}</p>
+
+        <div className={`tf-track ${reduced ? 'is-static' : ''}`} ref={track}>
+          <div className="tf-inner">
+            <ol className="tf-steps">
+              {T.how.steps.map((s, i) => (
+                <li
+                  key={i}
+                  className={`tf-step ${i === idx ? 'is-active' : ''} ${i < idx ? 'is-done' : ''}`}
+                >
+                  <span className="tf-num">{'0' + (i + 1)}</span>
+                  <div className="tf-copy">
+                    <h3>{s.title}</h3>
+                    <div className="tf-body"><p>{s.body}</p></div>
+                  </div>
+                  <span className="tf-bar">
+                    <i style={{ transform: `scaleX(${i < idx ? 1 : i === idx ? local : 0})` }} />
+                  </span>
+                </li>
+              ))}
+            </ol>
+
+            <div className="tf-stage">
+              <span className="tf-caption">{T.demo.caption}</span>
+              <TransformScene p={p} />
+              <span className={`tf-pill ${p >= 0.9 ? 'is-on' : ''}`}>
+                <span className="dot"></span>{T.hero.badge}
+              </span>
+              <span className="tf-phase">{T.demo.steps[idx].t}</span>
             </div>
-          ))}
+          </div>
         </div>
-        <PlugPlayDemo/>
       </div>
     </section>
-  );
-}
-
-// ── Plug & Play Demo ───────────────────────────────────
-function PlugPlayDemo() {
-  const [step, setStep] = React.useState(0);
-  const [playing, setPlaying] = React.useState(false);
-  const timer = React.useRef(null);
-  React.useEffect(() => {
-    if (!playing) return;
-    timer.current = setTimeout(() => {
-      setStep(s => {
-        if (s >= 2) { setPlaying(false); return s; }
-        return s + 1;
-      });
-    }, 1800);
-    return () => clearTimeout(timer.current);
-  }, [step, playing]);
-  const labels = T.demo.steps;
-  return (
-    <div className="demo" style={{ marginTop: 56 }}>
-      <div className="demo-side">
-        <span className="eyebrow green" style={{ alignSelf: 'flex-start' }}><span className="dot"></span>{T.demo.eyebrow}</span>
-        <h3>{T.demo.title}</h3>
-        <p>{T.demo.body}</p>
-        <div className="demo-progress">
-          {[0,1,2].map(i => (
-            <div key={i} className={`bar ${i < step ? 'done' : ''} ${i === step ? 'active' : ''}`}>
-              <div className="fill" style={{ width: i < step ? '100%' : i === step && playing ? '100%' : i === step ? '40%' : '0%', transition: i === step && playing ? 'width 1.7s linear' : 'width .2s' }}/>
-            </div>
-          ))}
-        </div>
-        <div style={{ fontSize: 13, marginTop: 4, color: 'rgba(255,255,255,.85)', fontFamily: 'Sora, sans-serif', fontWeight: 600 }}>
-          {labels[step].t}
-        </div>
-        <p style={{ fontSize: 13.5 }}>{labels[step].d}</p>
-        <div className="demo-controls">
-          <button className="primary" onClick={() => { if (step >= 2) { setStep(0); setPlaying(true); } else setPlaying(p => !p); }}>
-            {playing ? T.demo.pause : step >= 2 ? T.demo.restart : T.demo.play}
-          </button>
-          <button onClick={() => { setPlaying(false); setStep(s => Math.max(0, s-1)); }}>{T.demo.prev}</button>
-          <button onClick={() => { setPlaying(false); setStep(s => Math.min(2, s+1)); }}>{T.demo.next}</button>
-        </div>
-      </div>
-      <div className="demo-stage">
-        <div className="caption">{T.demo.caption}</div>
-        <DemoStage step={step}/>
-        <div className="ground"></div>
-        <div className="stripes"></div>
-      </div>
-    </div>
   );
 }
 
