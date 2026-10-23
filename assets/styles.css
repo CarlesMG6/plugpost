@@ -344,7 +344,8 @@ section { padding: 100px 0; position: relative; }
   border-radius: 2px; background: var(--line); overflow: hidden;
   opacity: 0; transition: opacity .3s ease;
 }
-.tf-step.is-done .tf-bar, .tf-step.is-active .tf-bar { opacity: 1; }
+/* Solo el paso en curso enseña su barra; al completarlo se desvanece. */
+.tf-step.is-active .tf-bar { opacity: 1; }
 .tf-bar i { display: block; height: 100%; background: var(--green); transform-origin: left center; }
 .tf-stage {
   /* Misma proporcion que el viewBox de la escena: encaja sin recortes. */

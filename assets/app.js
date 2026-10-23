@@ -72,43 +72,67 @@ const Ico = {
 // suelo; el mástil crece hacia -y. Todas las escenas reutilizan estos trazados
 // para que la farola sea siempre la misma pieza, sólo que a otra escala.
 //
-// El ORDEN DE PINTADO es parte del diseño: cono → zócalo → fuste → luminaria
+// El ORDEN DE PINTADO es parte del diseño: cono → basamento → fuste → luminaria
 // → módulo de carga. El módulo va el último a propósito, porque está montado
 // sobre la cara frontal de la columna: así el fuste pasa por DETRÁS y nunca
 // lo atraviesa.
 const MAST = {
-  plinth: 'M-22 0 L-17 -34 L17 -34 L22 0 Z',
-  shaft: 'M0 -30 L0 -300 C0 -372 -22 -404 -84 -414',
-  head: 'M-84 -414 q-46 -16 -96 2 q-7 3 -4 10 q5 12 34 16 q40 6 80 -12 q6 -3 -14 -16 Z',
-  cone: 'M-184 -396 L-312 0 L-16 0 L-92 -396 Z',
-  // Punto de salida del cable, en el lateral del módulo.
-  port: [19, -169],
+  shaft: 'M0 -60 L0 -300 C0 -372 -20 -404 -78 -414',
+  head: 'M-70 -421 C-96 -434 -158 -432 -188 -415 C-193 -412 -192 -404 -185 -403 L-84 -403 C-74 -403 -66 -410 -70 -421 Z',
+  cone: 'M-176 -401 L-300 0 L-24 0 L-90 -401 Z',
+  // Centro de la toma: de aquí sale el cable hacia el coche.
+  port: [0, -178],
 };
 
 // Farola convencional: fuste recto, brazo en ángulo y luminaria trapezoidal.
 const OLD_MAST = {
-  plinth: 'M-20 0 L-16 -30 L16 -30 L20 0 Z',
-  shaft: 'M0 -26 L0 -340 L-48 -386',
+  shaft: 'M0 -60 L0 -340 L-46 -384',
   head: 'M-44 -396 L-126 -396 L-138 -358 L-34 -358 Z',
   cap: 'M-128 -398 L-42 -398 L-38 -406 L-124 -406 Z',
   cone: 'M-138 -358 L-254 0 L22 0 L-34 -358 Z',
 };
 
-const PAL = { pole: '#1F2A3D', poleHi: '#3A4868', plinth: '#2A3550', mod: '#0B1220', old: '#4D5A76' };
+const PAL = { pole: '#1F2A3D', poleHi: '#3A4868', plinth: '#2A3550', old: '#4D5A76', oldHi: '#6B7894' };
 
-// Módulo de carga embebido. Se dibuja siempre después del fuste.
-function ChargerModule({ led = true }) {
+// Basamento común: pletina atornillada + zócalo con registro. El fuste
+// arranca en y=-60, justo donde acaba el zócalo.
+function Base({ fill, detail }) {
   return (
     <g>
-      <rect x="-19" y="-238" width="38" height="140" rx="10" fill={PAL.mod} />
-      <rect x="-19" y="-238" width="14" height="140" rx="10" fill="#FFFFFF" opacity=".07" />
-      <rect x="11" y="-238" width="8" height="140" rx="7" fill="#000000" opacity=".28" />
-      <circle cx="0" cy="-206" r="11.5" fill={led ? '#22C55E' : '#2A3550'} />
-      <path d="M-2 -212 l-3 8 h4 l-1 6 5-8 h-4 l-1-6 z" fill={led ? '#06200E' : '#0B1220'} />
-      <rect x="-11" y="-178" width="22" height="18" rx="5" fill="#060C18" stroke={PAL.poleHi} strokeWidth="1" />
-      <circle cx="0" cy="-169" r="4.5" fill={PAL.poleHi} opacity=".55" />
-      <rect x="-10" y="-144" width="20" height="3" rx="1.5" fill={PAL.poleHi} opacity=".45" />
-      <rect x="-10" y="-136" width="13" height="3" rx="1.5" fill={PAL.poleHi} opacity=".3" />
+      <rect x="-24" y="-8" width="48" height="8" rx="2" fill={fill} />
+      <circle cx="-17" cy="-4" r="2" fill={detail} />
+      <circle cx="17" cy="-4" r="2" fill={detail} />
+      <path d="M-15 -8 L-12 -64 L12 -64 L15 -8 Z" fill={fill} />
+      <rect x="-5" y="-50" width="10" height="28" rx="2" fill="none" stroke={detail} strokeOpacity=".6" strokeWidth="1.2" />
+    </g>
+  );
+}
+
+// Módulo de carga embebido. Se dibuja siempre después del fuste. Las dos
+// abrazaderas (arriba y abajo) son las que lo "sujetan" visualmente a la
+// columna; todo lo que va en su cara está centrado en x=0.
+function ChargerModule({ id, led = true }) {
+  return (
+    <g>
+      <defs>
+        <linearGradient id={`${id}-mod`} x1="0" x2="1" y1="0" y2="0">
+          <stop offset="0" stopColor="#1C2840" />
+          <stop offset=".45" stopColor="#0E1728" />
+          <stop offset="1" stopColor="#060B16" />
+        </linearGradient>
+      </defs>
+      <rect x="-12" y="-251" width="24" height="8" rx="2" fill={PAL.poleHi} />
+      <rect x="-12" y="-99" width="24" height="8" rx="2" fill={PAL.poleHi} />
+      <rect x="-19" y="-244" width="38" height="146" rx="10" fill={`url(#${id}-mod)`} />
+      {led && <circle cx="0" cy="-216" r="16" fill="#22C55E" opacity=".2" />}
+      <circle cx="0" cy="-216" r="11" fill={led ? '#22C55E' : '#2A3550'} />
+      <path d="M1.5 -224 L-4.5 -215 H-0.5 L-1.5 -208 L4.5 -217 H0.5 Z" fill={led ? '#06200E' : '#0B1220'} />
+      <circle cx="0" cy="-178" r="9" fill="#050A14" stroke={PAL.poleHi} strokeWidth="1.5" />
+      <circle cx="-3.5" cy="-180" r="1.4" fill={PAL.poleHi} />
+      <circle cx="3.5" cy="-180" r="1.4" fill={PAL.poleHi} />
+      <circle cx="0" cy="-174.5" r="1.4" fill={PAL.poleHi} />
+      <rect x="-9" y="-152" width="18" height="2.5" rx="1.25" fill={PAL.poleHi} opacity=".5" />
+      <rect x="-9" y="-145" width="12" height="2.5" rx="1.25" fill={PAL.poleHi} opacity=".35" />
     </g>
   );
 }
@@ -117,11 +141,12 @@ function Mast({ id, led = true, coneOpacity = 1 }) {
   return (
     <g>
       {coneOpacity > 0 && <path d={MAST.cone} fill={`url(#${id}-cone)`} opacity={coneOpacity} />}
-      <path d={MAST.plinth} fill={PAL.plinth} />
+      <Base fill={PAL.plinth} detail={PAL.poleHi} />
       <path d={MAST.shaft} stroke={PAL.pole} strokeWidth="15" strokeLinecap="round" fill="none" />
       <path d={MAST.head} fill={PAL.pole} />
-      <ellipse cx="-132" cy="-392" rx="44" ry="5" fill="#FBD27A" opacity={led ? 0.9 : 0.18} />
-      <ChargerModule led={led} />
+      {led && <ellipse cx="-133" cy="-401" rx="50" ry="6" fill="#FBD27A" opacity=".3" />}
+      <rect x="-176" y="-405" width="86" height="5" rx="2.5" fill={led ? '#FBD27A' : PAL.poleHi} />
+      <ChargerModule id={id} led={led} />
     </g>
   );
 }
@@ -130,10 +155,10 @@ function OldMast({ id, coneOpacity = 1 }) {
   return (
     <g>
       {coneOpacity > 0 && <path d={OLD_MAST.cone} fill={`url(#${id}-cone)`} opacity={coneOpacity} />}
-      <path d={OLD_MAST.plinth} fill={PAL.plinth} />
+      <Base fill={PAL.old} detail={PAL.oldHi} />
       <path d={OLD_MAST.shaft} stroke={PAL.old} strokeWidth="13" strokeLinecap="round" strokeLinejoin="round" fill="none" />
       <path d={OLD_MAST.head} fill={PAL.old} />
-      <path d={OLD_MAST.cap} fill="#5F6C88" />
+      <path d={OLD_MAST.cap} fill={PAL.oldHi} />
       <path d="M-134 -359 L-38 -359" stroke="#FBD27A" strokeWidth="5" opacity=".75" strokeLinecap="round" />
     </g>
   );
@@ -154,14 +179,12 @@ function Car() {
   );
 }
 
-// Cimentación reutilizada: la misma base sostiene la farola vieja y PlugPost.
+// Cimentación reutilizada: la misma losa sostiene la farola vieja y PlugPost.
 function Foundation() {
   return (
     <g>
-      <ellipse cx="0" cy="2" rx="46" ry="7" fill="#000000" opacity=".35" />
-      <path d="M-31 0 L-25 -15 L25 -15 L31 0 Z" fill="#17223A" />
-      <circle cx="-18" cy="-9" r="2.6" fill="#3A4868" />
-      <circle cx="18" cy="-9" r="2.6" fill="#3A4868" />
+      <ellipse cx="0" cy="3" rx="50" ry="7" fill="#000000" opacity=".35" />
+      <rect x="-36" y="-3" width="72" height="6" rx="2" fill="#17223A" />
     </g>
   );
 }
@@ -181,7 +204,8 @@ function HeroScene() {
       <defs><ConeGradient id="hero" /></defs>
       <g transform="translate(390,452) scale(.82)"><Mast id="hero" /></g>
       <g transform="translate(195,478)"><Car /></g>
-      <path d="M406 310 C 380 348, 330 404, 264 412" stroke="#22C55E" strokeWidth="3" fill="none" strokeDasharray="5 4" strokeLinecap="round">
+      <circle cx="390" cy="306" r="4.5" fill="#22C55E" />
+      <path d="M390 306 C 372 350, 330 404, 264 412" stroke="#22C55E" strokeWidth="3" fill="none" strokeDasharray="5 4" strokeLinecap="round">
         <animate attributeName="stroke-dashoffset" from="0" to="-18" dur="1.2s" repeatCount="indefinite" />
       </path>
       <circle cx="264" cy="412" r="4" fill="#22C55E" />
@@ -238,6 +262,7 @@ function TransformScene({ p }) {
       )}
       {plug > 0.01 && (
         <g opacity={plug}>
+          <circle cx={sx} cy={sy} r="4.5" fill="#22C55E" />
           <path d={`M${sx} ${sy} C ${sx - 26} ${sy + 46}, ${sx - 92} ${sy + 86}, 236 352`} stroke="#22C55E" strokeWidth="3" fill="none" strokeDasharray="5 4" strokeLinecap="round">
             <animate attributeName="stroke-dashoffset" from="0" to="-18" dur="1s" repeatCount="indefinite" />
           </path>
